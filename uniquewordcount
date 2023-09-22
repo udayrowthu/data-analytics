@@ -1,0 +1,145 @@
+1)problem 1 code
+from mrjob.job import MRJob
+import re
+
+# Regular expression pattern to extract words from text
+WORD_RE = re.compile(r"[\w']+")
+
+class WordCount(MRJob):
+
+    def mapper(self, _, line):
+        # Tokenize the line and emit each word as a key with a count of 1
+        for word in WORD_RE.findall(line):
+            # Convert word to lowercase to ensure case-insensitive counting
+            yield word.lower(), 1
+
+    def combiner(self, word, counts):
+        # Combiner to aggregate counts for each word before shuffling
+        yield word, sum(counts)
+
+    def reducer(self, word, counts):
+        # Sum up the counts for each word to get the unique word count
+        yield word, sum(counts)
+
+if __name__ == '__main__':
+    WordCount.run()
+
+
+
+
+2)problem 2 code
+
+
+
+
+from mrjob.job import MRJob
+import re
+
+# Regular expression pattern to extract words from text
+WORD_RE = re.compile(r"[\w']+")
+
+# List of stopwords to be removed
+STOPWORDS = set(['the', 'and', 'of', 'a', 'to', 'in', 'is', 'it'])
+
+class NonStopwordWordCount(MRJob):
+
+    def configure_args(self):
+        super(NonStopwordWordCount, self).configure_args()
+        self.add_passthru_arg('--stopwords', default='', help='Path to stopwords file')
+
+    def mapper(self, _, line):
+        # Tokenize the line into words
+        words = WORD_RE.findall(line)
+
+        # Filter out stopwords and emit each non-stopword word as a key with a count of 1
+        for word in words:
+            word_lower = word.lower()
+            if word_lower not in STOPWORDS:
+                yield word_lower, 1
+
+    def combiner(self, word, counts):
+        # Combine the counts for each word locally before shuffling
+        yield word, sum(counts)
+
+    def reducer(self, word, counts):
+        # Sum the counts for each word and emit the result
+        total_count = sum(counts)
+        yield word, total_count
+
+if __name__ == '__main__':
+    NonStopwordWordCount.run()
+
+
+3)Problem 3 code
+
+
+
+from mrjob.job import MRJob
+import re
+
+# Regular expression pattern to extract words from text
+WORD_RE = re.compile(r"[\w']+")
+
+class BigramCount(MRJob):
+
+    def mapper(self, _, line):
+        # Tokenize the line into words
+        words = WORD_RE.findall(line)
+
+        # Emit word bigrams as key-value pairs
+        for i in range(len(words) - 1):
+            bigram = f"{words[i]},{words[i+1]}"
+            yield bigram, 1
+
+    def combiner(self, bigram, counts):
+        # Combiner to aggregate counts for each bigram before shuffling
+        yield bigram, sum(counts)
+
+    def reducer(self, bigram, counts):
+        # Sum up the counts for each bigram to get the total occurrences
+        total_count = sum(counts)
+        yield bigram, total_count
+
+if __name__ == '__main__':
+    BigramCount.run()
+
+
+
+
+4)Problem 4 code
+
+
+import sys
+from collections import defaultdict
+
+def generate_inverted_index(document_id, text):
+    words = text.strip().split()
+    inverted_index = defaultdict(list)
+    for word in words:
+        inverted_index[word].append(document_id)
+    return inverted_index.items()
+
+def process_document_line(line):
+    parts = line.strip().split(":")
+    if len(parts) != 2:
+        return None, None
+
+    document_id = parts[0].strip()
+    text = parts[1].strip()
+
+    return document_id, text
+
+def main():
+    for line in sys.stdin:
+        document_id, text = process_document_line(line)
+        if document_id is not None and text is not None:
+            inverted_index = generate_inverted_index(document_id, text)
+            for word, documents in inverted_index:
+                print(f'"{word}" "{", ".join(documents)}"')
+
+if __name__ == "__main__":
+    main()
+
+
+
+
