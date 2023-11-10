@@ -7,8 +7,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import StandardScaler, OneHotEncoder  # Import OneHotEncoder
 from sklearn.impute import SimpleImputer
 
-# Load and preprocess your dataset (replace 'your_dataset.csv' with your dataset)
-data = pd.read_csv('your_dataset.csv')
+# Load and preprocess your dataset (replace with your dataset)
+data = pd.read_csv('/Users/udayrowthu/Downloads/test.csv')
 
 # Assuming the last column is the target label and the rest are features
 X = data.iloc[:, :-1]  # Features
