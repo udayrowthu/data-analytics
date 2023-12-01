@@ -33,3 +33,75 @@ print(compressed)
 
 OUTPUT:
 abcd
+
+
+import requests
+from bs4 import BeautifulSoup
+
+
+#faculty_directory_url = "https://engineering.tamu.edu/cse/profiles/index.html?&_ga=2.196879660.1445689642.1694720890-1803454394.1694720890&_gl=1*12kfga3*_ga*MTgwMzQ1NDM5NC4xNjk0NzIwODkw*_ga_PBV6K94CC1*MTY5NDcyMDg5MC4xLjEuMTY5NDcyMDg5NS41NS4wLjA.*_ga_SJ5GMN0ZQL*MTY5NDcyMDg5MC4xLjEuMTY5NDcyMDg5NS41NS4wLjA.#Faculty"
+response=requests.get(faculty_directory_url)
+print(response)
+html_content= response.text
+
+Parse= BeautifulSoup(html_content,'html.parser')
+paragraphs=Parse.find_all('p')
+table= soup.find('table')
+print(paragraphs)
+print(table)
+
+def get_faculty_homepage_urls(directory_url):
+    homepage_urls = []
+
+
+    response = requests.get(directory_url)
+
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        faculty_links = soup.select(".faculty-list a")
+
+        for link in faculty_links:
+            homepage_url = link.get("href")
+
+
+            if not homepage_url.startswith("http"):
+                homepage_url = f"{directory_url}/{homepage_url}"
+
+            homepage_urls.append(homepage_url)
+
+    return homepage_urls
+
+def scrape_faculty_info(homepage_url):
+    faculty_info = {}
+
+
+    response = requests.get(homepage_url)
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, "html.parser")
+
+
+        faculty_info["name"] = soup.select_one(".faculty-name").text.strip()
+        faculty_info["bio"] = soup.select_one(".faculty-bio").text.strip()
+        faculty_info["courses"] = [course.text.strip() for course in soup.select(".faculty-courses li")]
+
+    return faculty_info
+
+if __name__ == "__main__":
+    faculty_directory_url = "https://engineering.tamu.edu/cse/profiles/index.html?&_ga=2.196879660.1445689642.1694720890-1803454394.1694720890&_gl=1*12kfga3*_ga*MTgwMzQ1NDM5NC4xNjk0NzIwODkw*_ga_PBV6K94CC1*MTY5NDcyMDg5MC4xLjEuMTY5NDcyMDg5NS41NS4wLjA.*_ga_SJ5GMN0ZQL*MTY5NDcyMDg5MC4xLjEuMTY5NDcyMDg5NS41NS4wLjA.#Faculty"
+    faculty_homepage_urls = get_faculty_homepage_urls(faculty_directory_url)
+
+    faculty_data = []
+
+    for homepage_url in faculty_homepage_urls:
+        faculty_info = scrape_faculty_info(homepage_url)
+        faculty_data.append(faculty_info)
+
+
+    for faculty in faculty_data:
+        print("Name:", faculty.get("name"))
+        print("Bio:", faculty.get("bio"))
+        print("Courses:", ", ".join(faculty.get("courses")))
+        print("\n")
