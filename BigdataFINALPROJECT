@@ -1,1 +1,61 @@
+# Import necessary libraries
+
+
+
+from pyspark.sql import SparkSession
+
+from pyspark.sql.functions import col
+
+import matplotlib.pyplot as plt
+
+
+
+# Create a Spark session
+
+spark = SparkSession.builder.appName("GlobalSuperstoreAnalysis")\.config("spark.jars", "~\project.pem hadoop@ec2-3-15-153-41.us-east-2.compute.amazonaws.com").getOrCreate()
+
+s3_bucket = "project132"
+
+s3_key = "s3://project132/superstore.csv"
+
+s3_path = f"s3a://[{s3_bucket}/{s3_key}"
+
+#s3_path = "/Users/perusaaho/Downloads/superstore.csv"
+
+df = spark.read.format("csv").option("header", "true").option("inferSchema", "true").load(s3_path)
+
+df  = df.withColumn("Sales", col("Sales").cast("double"))
+
+# Perform some basic analysis (you can modify this based on your specific analysis needs)
+
+# For example, let's visualize sales per category using matplotlib
+
+
+
+# Group by category and sum the sales
+
+category_sales = df.groupBy("Category").sum("Sales").toPandas()
+
+
+
+# Plot the results
+
+plt.figure(figsize=(10, 6))
+
+plt.bar(category_sales["Category"], category_sales["sum(Sales)"])
+
+plt.title("Total Sales per Category")
+
+plt.xlabel("Category")
+
+plt.ylabel("Total Sales")
+
+plt.show()
+
+
+
+# Stop the Spark session
+
+spark.stop()
+
 
